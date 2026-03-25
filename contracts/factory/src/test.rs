@@ -2,8 +2,7 @@ use super::*;
 use soroban_sdk::testutils::Address as _;
 use soroban_sdk::{Address, BytesN, Env, Symbol};
 
-const MOCK_EVENT_WASM: &[u8] =
-    include_bytes!("../../../target/wasm32-unknown-unknown/release/mock_event_contract.wasm");
+const MOCK_EVENT_WASM: &[u8] = include_bytes!("../test-fixtures/mock_event_contract.wasm");
 
 fn test_salt(env: &Env, fill: u8) -> BytesN<32> {
     BytesN::from_array(env, &[fill; 32])
@@ -76,10 +75,7 @@ fn test_deploy_duplicate_event_fails() {
     client.deploy_event(&organizer, &event_id, &test_salt(&env, 1));
 
     let result = client.try_deploy_event(&organizer, &event_id, &test_salt(&env, 2));
-    assert_eq!(
-        result.err(),
-        Some(Ok(FactoryError::EventAlreadyDeployed))
-    );
+    assert_eq!(result.err(), Some(Ok(FactoryError::EventAlreadyDeployed)));
 }
 
 #[test]

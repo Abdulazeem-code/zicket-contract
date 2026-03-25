@@ -11,5 +11,6 @@ impl MockEventContract {
         _admin: Address,
         _ticket_contract: Address,
         _payments_contract: Address,
-    ) {}
+    ) {
+    }
 }

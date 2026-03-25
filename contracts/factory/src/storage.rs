@@ -20,8 +20,6 @@ pub enum DataKey {
 pub fn is_initialized(env: &Env) -> bool {
     env.storage().persistent().has(&DataKey::Admin)
         && env.storage().persistent().has(&DataKey::EventWasm)
-        && env.storage().persistent().has(&DataKey::TicketContract)
-        && env.storage().persistent().has(&DataKey::PaymentsContract)
 }
 
 pub fn get_admin(env: &Env) -> Result<Address, FactoryError> {

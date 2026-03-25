@@ -211,6 +211,9 @@ fn test_cancel_event_triggers_refunds() {
 #[test]
 fn test_registration_with_email_hook() {
     let env = setup_env();
+fn test_withdraw_revenue_integration() {
+    let env = setup_env();
+    env.mock_all_auths();
 
     let organizer = Address::generate(&env);
     let attendee = Address::generate(&env);
@@ -245,4 +248,27 @@ fn test_registration_with_email_hook() {
 
     // Basic verification that call succeeded and events were emitted
     let _events = env.events().all();
+    let event_id = Symbol::new(&env, "evt_withdraw_1");
+    create_active_event(&env, &event_client, &organizer, event_id.clone());
+
+    // Register attendee
+    event_client.register_for_event(&attendee, &event_id, &0);
+    assert_eq!(token_client.balance(&payments_contract_id), price);
+
+    // Complete event to allow withdrawal
+    event_client.update_event_status(&organizer, &event_id, &EventStatus::Completed);
+
+    // Withdraw revenue
+    event_client.withdraw_revenue(&organizer, &event_id);
+
+    // Verify funds moved
+    assert_eq!(token_client.balance(&organizer), price);
+    assert_eq!(token_client.balance(&payments_contract_id), 0);
+
+    // Verify history
+    let history = event_client.get_withdrawal_history(&event_id);
+    assert_eq!(history.len(), 1);
+    let record = history.get(0).unwrap();
+    assert_eq!(record.amount, price);
+    assert_eq!(record.organizer, organizer);
 }

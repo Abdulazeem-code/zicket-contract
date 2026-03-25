@@ -83,6 +83,7 @@ impl PaymentsContract {
 
         storage::save_payment(&env, &payment);
         storage::add_event_payment(&env, &event_id, payment_id);
+        storage::add_payer_payment(&env, &payer, payment_id);
         storage::add_event_revenue(&env, &event_id, amount);
 
         events::emit_payment_received(&env, payment_id, event_id, payer, amount);
@@ -186,6 +187,28 @@ impl PaymentsContract {
 
     pub fn get_event_payments(env: Env, event_id: Symbol) -> soroban_sdk::Vec<u64> {
         storage::get_event_payments(&env, &event_id)
+    }
+
+    pub fn get_payments_by_event(env: Env, event_id: Symbol) -> soroban_sdk::Vec<PaymentRecord> {
+        let payment_ids = storage::get_event_payments(&env, &event_id);
+        let mut payments = soroban_sdk::Vec::new(&env);
+        for id in payment_ids {
+            if let Ok(payment) = storage::get_payment(&env, id) {
+                payments.push_back(payment);
+            }
+        }
+        payments
+    }
+
+    pub fn get_payments_by_user(env: Env, user: Address) -> soroban_sdk::Vec<PaymentRecord> {
+        let payment_ids = storage::get_payer_payments(&env, &user);
+        let mut payments = soroban_sdk::Vec::new(&env);
+        for id in payment_ids {
+            if let Ok(payment) = storage::get_payment(&env, id) {
+                payments.push_back(payment);
+            }
+        }
+        payments
     }
 }
 

@@ -57,7 +57,7 @@ impl EventContract {
             return Err(EventError::InvalidEventDate);
         }
 
-        // Validate there is at least one tier
+        // Validate there is at least 1 tier
         if params.initial_tiers.is_empty() {
             return Err(EventError::InvalidInput);
         }
@@ -274,7 +274,7 @@ impl EventContract {
 
         let mut found = false;
         for i in 0..event.tiers.len() {
-            let mut tier = event.tiers.get(i).unwrap();
+            let mut tier = event.tiers.get(i).ok_or(EventError::TierNotFound)?;
             if tier.tier_id == tier_id {
                 if let Some(n) = name.clone() {
                     if n.is_empty() {
@@ -370,7 +370,7 @@ impl EventContract {
 
         update_event(&env, &event_id, &event)?;
         emit_status_changed(&env, &event_id, &old_status, &EventStatus::Cancelled);
-        emit_event_cancelled(&env, &event_id);
+        emit_event_cancelled(&env, &event_id, &organizer);
 
         // Process refunds if contracts are linked
         if has_linked_contracts(&env) {
@@ -422,7 +422,7 @@ impl EventContract {
                 // First decrement the old reserved count.
                 let mut found = false;
                 for i in 0..event.tiers.len() {
-                    let mut tier = event.tiers.get(i).unwrap();
+                    let mut tier = event.tiers.get(i).ok_or(EventError::TierNotFound)?;
                     if tier.tier_id == reservation.tier_id {
                         if tier.reserved > 0 {
                             tier.reserved -= 1;
@@ -440,7 +440,7 @@ impl EventContract {
 
         let mut tier_index = None;
         for i in 0..event.tiers.len() {
-            let tier = event.tiers.get(i).unwrap();
+            let tier = event.tiers.get(i).ok_or(EventError::TierNotFound)?;
             if tier.tier_id == tier_id {
                 tier_index = Some(i);
                 break;
@@ -448,7 +448,7 @@ impl EventContract {
         }
 
         let index = tier_index.ok_or(EventError::TierNotFound)?;
-        let mut tier = event.tiers.get(index).unwrap();
+        let mut tier = event.tiers.get(index).ok_or(EventError::TierNotFound)?;
 
         if tier.sold + tier.reserved >= tier.capacity {
             return Err(EventError::TierSoldOut);
@@ -485,7 +485,7 @@ impl EventContract {
         let mut event = storage::get_event(&env, &event_id)?;
         let mut found = false;
         for i in 0..event.tiers.len() {
-            let mut tier = event.tiers.get(i).unwrap();
+            let mut tier = event.tiers.get(i).ok_or(EventError::TierNotFound)?;
             if tier.tier_id == reservation.tier_id {
                 if tier.reserved > 0 {
                     tier.reserved -= 1;
@@ -538,7 +538,7 @@ impl EventContract {
             }
 
             for i in 0..event.tiers.len() {
-                let tier = event.tiers.get(i).unwrap();
+                let tier = event.tiers.get(i).ok_or(EventError::TierNotFound)?;
                 if tier.tier_id == tier_id {
                     tier_index = Some(i);
                     break;
@@ -547,7 +547,7 @@ impl EventContract {
         } else {
             // Instant purchase without reservation (if capacity allows)
             for i in 0..event.tiers.len() {
-                let tier = event.tiers.get(i).unwrap();
+                let tier = event.tiers.get(i).ok_or(EventError::TierNotFound)?;
                 if tier.tier_id == tier_id {
                     tier_index = Some(i);
                     break;
@@ -556,7 +556,7 @@ impl EventContract {
         }
 
         let index = tier_index.ok_or(EventError::TierNotFound)?;
-        let mut tier = event.tiers.get(index).unwrap();
+        let mut tier = event.tiers.get(index).ok_or(EventError::TierNotFound)?;
 
         if !has_res && tier.sold + tier.reserved >= tier.capacity {
             return Err(EventError::TierSoldOut);

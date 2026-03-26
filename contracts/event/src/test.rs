@@ -879,7 +879,7 @@ fn test_reserve_and_pay_success() {
     client.reserve_ticket(&attendee, &event_id, &0);
 
     // 2. Pay
-        client.register_for_event(&attendee, &event_id, &0, &false);
+    client.register_for_event(&attendee, &event_id, &0, &false);
 
     let event = client.get_event(&event_id);
     let tier = event.tiers.get(0).unwrap();

@@ -233,7 +233,7 @@ fn test_withdraw_revenue_integration() {
     let token_admin_client = token::StellarAssetClient::new(&env, &token_address);
     let token_client = token::Client::new(&env, &token_address);
 
-        payments_client.initialize(&organizer, &token_address, &event_contract_id);
+    payments_client.initialize(&organizer, &token_address, &event_contract_id);
     event_client.initialize(&organizer, &ticket_contract_id, &payments_contract_id);
 
     let price = 100_000_000i128;

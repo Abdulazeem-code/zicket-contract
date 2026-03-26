@@ -181,7 +181,15 @@ impl PaymentsContract {
         is_anonymous: bool,
         is_verified: bool,
     ) -> Result<u64, PaymentError> {
-        create_payment(env, payer, event_id, amount, is_anonymous, is_verified, PaymentPrivacy::Standard)
+        create_payment(
+            env,
+            payer,
+            event_id,
+            amount,
+            is_anonymous,
+            is_verified,
+            PaymentPrivacy::Standard,
+        )
     }
 
     pub fn sync_event_privacy(

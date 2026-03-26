@@ -511,7 +511,7 @@ impl EventContract {
         attendee: Address,
         event_id: Symbol,
         tier_id: u32,
-        is_verified: bool,
+        _is_verified: bool,
     ) -> Result<(), EventError> {
         attendee.require_auth();
 

@@ -335,52 +335,78 @@ fn test_pay_for_ticket_query_record() {
 }
 
 #[test]
-fn test_refund_happy_path() {
+fn test_withdraw_revenue_success() {
     let env = Env::default();
     env.mock_all_auths();
+    env.ledger().with_mut(|li| {
+        li.timestamp = 1704067200;
+    });
 
-    let (admin, _token, client, contract_id, token_contract) = setup_contract_with_token(&env);
+    let (admin, token, client, contract_id, token_contract) = setup_contract_with_token(&env);
     let payer = Address::generate(&env);
     let event_id = symbol_short!("EVENT1");
     let amount = 100_000_000i128;
 
+    // 1. Setup funds and pay for ticket
     token_contract.mint(&admin, &amount);
-    let token_client = token::Client::new(&env, &_token);
+    let token_client = token::Client::new(&env, &token);
     token_client.transfer(&admin, &payer, &amount);
+    client.pay_for_ticket(&payer, &event_id, &amount);
 
-    let payment_id = client.pay_for_ticket(&payer, &event_id, &amount);
-
-    assert_eq!(token_client.balance(&payer), 0);
     assert_eq!(token_client.balance(&contract_id), amount);
+    assert_eq!(client.get_event_revenue(&event_id), amount);
 
-    client.refund(&admin, &payment_id);
+    // 2. Withdraw revenue
+    let organizer = Address::generate(&env);
+    client.withdraw_revenue(&event_id, &organizer);
 
-    let payment = client.get_payment(&payment_id);
-    assert_eq!(payment.status, PaymentStatus::Refunded);
-    assert_eq!(token_client.balance(&payer), amount);
+    // 3. Verify balances
     assert_eq!(token_client.balance(&contract_id), 0);
+    assert_eq!(token_client.balance(&organizer), amount);
     assert_eq!(client.get_event_revenue(&event_id), 0);
+
+    // 4. Verify withdrawal history
+    let history = client.get_withdrawal_history(&event_id);
+    assert_eq!(history.len(), 1);
+    let record = history.get(0).unwrap();
+    assert_eq!(record.amount, amount);
+    assert_eq!(record.organizer, organizer);
+    assert_eq!(record.timestamp, 1704067200);
+
+    // 5. Try to withdraw again -> should fail as revenue is 0
+    let result = client.try_withdraw_revenue(&event_id, &organizer);
+    assert!(result.is_err());
 }
 
 #[test]
-fn test_refund_double_refund() {
+fn test_multiple_withdrawals_tracked() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let (admin, _token, client, _, token_contract) = setup_contract_with_token(&env);
+    let (admin, token, client, _contract_id, token_contract) = setup_contract_with_token(&env);
     let payer = Address::generate(&env);
     let event_id = symbol_short!("EVENT1");
     let amount = 100_000_000i128;
 
+    let token_client = token::Client::new(&env, &token);
+    let organizer = Address::generate(&env);
+
+    // First withdrawal
     token_contract.mint(&admin, &amount);
-    let token_client = token::Client::new(&env, &_token);
     token_client.transfer(&admin, &payer, &amount);
+    client.pay_for_ticket(&payer, &event_id, &amount);
+    client.withdraw_revenue(&event_id, &organizer);
 
-    let payment_id = client.pay_for_ticket(&payer, &event_id, &amount);
-    client.refund(&admin, &payment_id);
+    // Second withdrawal
+    token_contract.mint(&admin, &amount);
+    token_client.transfer(&admin, &payer, &amount);
+    client.pay_for_ticket(&payer, &event_id, &amount);
+    client.withdraw_revenue(&event_id, &organizer);
 
-    let result = client.try_refund(&admin, &payment_id);
-    assert_eq!(result.err(), Some(Ok(PaymentError::PaymentAlreadyRefunded)));
+    let history = client.get_withdrawal_history(&event_id);
+    assert_eq!(history.len(), 2);
+    assert_eq!(history.get(0).unwrap().amount, amount);
+    assert_eq!(history.get(1).unwrap().amount, amount);
 }
 
 #[test]

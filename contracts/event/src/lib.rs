@@ -1,7 +1,18 @@
 #![no_std]
-use payments_contract::{PaymentPrivacy, PaymentsContractClient};
+mod payments {
+    soroban_sdk::contractimport!(
+        file = "../../target/wasm32-unknown-unknown/release/payments_contract.wasm"
+    );
+}
+mod ticket {
+    soroban_sdk::contractimport!(
+        file = "../../target/wasm32-unknown-unknown/release/ticket_contract.wasm"
+    );
+}
+
+use payments::{Client as PaymentsContractClient, PaymentPrivacy};
 use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Symbol};
-use ticket_contract::TicketContractClient;
+use ticket::Client as TicketContractClient;
 
 mod errors;
 mod events;
@@ -669,7 +680,7 @@ impl EventContract {
     pub fn get_withdrawal_history(
         env: Env,
         event_id: Symbol,
-    ) -> Result<soroban_sdk::Vec<payments_contract::WithdrawalRecord>, EventError> {
+    ) -> Result<soroban_sdk::Vec<payments::WithdrawalRecord>, EventError> {
         storage::get_event(&env, &event_id)?;
         let payments_contract = storage::get_payments_contract(&env)?;
         let payments_client = PaymentsContractClient::new(&env, &payments_contract);

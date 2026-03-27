@@ -415,7 +415,7 @@ impl EventContract {
         attendee: Address,
         event_id: Symbol,
         tier_id: u32,
-        email_hash: Option<BytesN<32>>,
+        _email_hash: Option<BytesN<32>>,
     ) -> Result<(), EventError> {
         attendee.require_auth();
 
@@ -530,7 +530,7 @@ impl EventContract {
         event_id: Symbol,
         tier_id: u32,
         _is_verified: bool,
-        email_hash: Option<BytesN<32>>,
+        _email_hash: Option<BytesN<32>>,
     ) -> Result<(), EventError> {
         attendee.require_auth();
 
@@ -592,7 +592,7 @@ impl EventContract {
                 &attendee,
                 &event_id,
                 &tier.price,
-                &email_hash,
+                &_email_hash,
                 &token,
                 &PaymentPrivacy::Standard,
             );

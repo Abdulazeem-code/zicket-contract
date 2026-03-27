@@ -1,7 +1,7 @@
 use super::*;
 use mock_event_contract::MockEventContract;
-use soroban_sdk::testutils::{Address as _, Events, Ledger};
-use soroban_sdk::{symbol_short, token, Address, Env, IntoVal, Symbol};
+use soroban_sdk::testutils::{Address as _, Ledger};
+use soroban_sdk::{symbol_short, token, Address, Env};
 
 #[test]
 fn test_initialize() {
@@ -1098,7 +1098,7 @@ fn test_release_if_expired_no_held_funds_still_marks_released() {
         li.timestamp = 1704067200;
     });
 
-    let (admin, token, client, _contract_id, token_contract) = setup_contract_with_token(&env);
+    let (admin, _token, client, _contract_id, _token_contract) = setup_contract_with_token(&env);
     let organizer = Address::generate(&env);
     let event_id = symbol_short!("EVENT1");
     let event_end_time: u64 = env.ledger().timestamp() + 86_400;
@@ -1140,7 +1140,7 @@ fn test_payments_set_privacy_level_private() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let (admin, token, client, _contract_id, token_contract) = setup_contract_with_token(&env);
+    let (admin, _token, client, _contract_id, _token_contract) = setup_contract_with_token(&env);
     let event_id = symbol_short!("EVENT1");
 
     client.set_event_privacy(&admin, &event_id, &PrivacyLevel::Private);
@@ -1154,7 +1154,7 @@ fn test_payments_set_privacy_level_anonymous() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let (admin, token, client, _contract_id, token_contract) = setup_contract_with_token(&env);
+    let (admin, _token, client, _contract_id, _token_contract) = setup_contract_with_token(&env);
     let event_id = symbol_short!("EVENT1");
 
     client.set_event_privacy(&admin, &event_id, &PrivacyLevel::Anonymous);
@@ -1358,7 +1358,7 @@ fn test_refund_unauthorized() {
 
     let (admin, token, client, _, token_contract) = setup_contract_with_token(&env);
     let payer = Address::generate(&env);
-    let not_admin = Address::generate(&env);
+    let _not_admin = Address::generate(&env);
     let event_id = symbol_short!("EVENT1");
     let amount = 100_000_000i128;
 
@@ -1414,7 +1414,7 @@ fn test_refund_nonexistent_payment() {
     let env = Env::default();
     env.mock_all_auths();
 
-    let (admin, token, client, _, _) = setup_contract_with_token(&env);
+    let (admin, _token, client, _, _) = setup_contract_with_token(&env);
     let result = client.try_refund(&admin, &999);
     assert_eq!(result.err(), Some(Ok(PaymentError::PaymentNotFound)));
 }

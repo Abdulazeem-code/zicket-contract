@@ -1,7 +1,7 @@
 use crate::types::{CreateEventParams, EventStatus, PrivacyLevel, TicketTierParams};
 use crate::{EventContract, EventContractClient};
-use soroban_sdk::testutils::{Address as _, Events, Ledger};
-use soroban_sdk::{token, Address, BytesN, Env, IntoVal, String, Symbol};
+use soroban_sdk::testutils::{Address as _, Ledger};
+use soroban_sdk::{token, Address, BytesN, Env, String, Symbol};
 
 fn setup_env() -> Env {
     let env = Env::default();

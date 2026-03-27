@@ -1598,6 +1598,6 @@ fn test_refund_on_cancelled_event_succeeds() {
 
     let payment = client.get_payment(&payment_id);
     assert_eq!(payment.status, PaymentStatus::Refunded);
-    assert_eq!(token_client.balance(&payer), amount);
     assert_eq!(token_client.balance(&contract_id), 0);
+    assert_eq!(token_client.balance(&payer), amount);
 }

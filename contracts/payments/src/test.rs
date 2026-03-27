@@ -1029,36 +1029,33 @@ fn test_refund_unauthorized() {
 }
 
 #[test]
-fn test_mask_address_standard_returns_some() {
-    use super::events::mask_address;
-    use super::PrivacyLevel;
+fn test_mask_address_standard_returns_full() {
+    use privacy_utils::{mask_address, MaskedAddress, PrivacyLevel};
 
     let env = Env::default();
     let addr = Address::generate(&env);
-    let result = mask_address(&env, &addr, &PrivacyLevel::Standard);
-    assert_eq!(result, Some(addr));
+    let result = mask_address(&env, &addr, PrivacyLevel::Standard);
+    assert_eq!(result, MaskedAddress::Full(addr));
 }
 
 #[test]
-fn test_mask_address_private_returns_none() {
-    use super::events::mask_address;
-    use super::PrivacyLevel;
+fn test_mask_address_private_returns_partial() {
+    use privacy_utils::{mask_address, MaskedAddress, PrivacyLevel};
 
     let env = Env::default();
     let addr = Address::generate(&env);
-    let result = mask_address(&env, &addr, &PrivacyLevel::Private);
-    assert!(result.is_none());
+    let result = mask_address(&env, &addr, PrivacyLevel::Private);
+    assert!(matches!(result, MaskedAddress::Partial(_)));
 }
 
 #[test]
-fn test_mask_address_anonymous_returns_none() {
-    use super::events::mask_address;
-    use super::PrivacyLevel;
+fn test_mask_address_anonymous_returns_hashed() {
+    use privacy_utils::{mask_address, MaskedAddress, PrivacyLevel};
 
     let env = Env::default();
     let addr = Address::generate(&env);
-    let result = mask_address(&env, &addr, &PrivacyLevel::Anonymous);
-    assert!(result.is_none());
+    let result = mask_address(&env, &addr, PrivacyLevel::Anonymous);
+    assert!(matches!(result, MaskedAddress::Hashed(_)));
 }
 
 #[test]

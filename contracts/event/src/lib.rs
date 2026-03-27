@@ -112,6 +112,7 @@ impl EventContract {
             tiers,
             status: EventStatus::Upcoming,
             created_at: env.ledger().timestamp(),
+            privacy_level: params.privacy_level.clone(),
         };
 
         save_event(&env, &params.event_id, &event);

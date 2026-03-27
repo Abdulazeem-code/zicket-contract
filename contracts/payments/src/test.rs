@@ -557,9 +557,8 @@ fn test_set_event_end_time_success() {
     let admin = _admin;
     client.set_event_end_time(&admin, &event_id, &organizer, &event_end_time);
 
-    // No error means success; verify via release_if_expired returning EscrowNotExpired
     env.ledger().with_mut(|li| {
-        li.timestamp = 1704067200; // before expiry
+        li.timestamp = 1704067200;
     });
     let result = client.try_release_if_expired(&event_id);
     assert_eq!(result.err(), Some(Ok(PaymentError::EscrowNotExpired)));
@@ -587,7 +586,6 @@ fn test_release_if_expired_before_deadline_fails() {
 
     client.set_event_end_time(&admin, &event_id, &organizer, &event_end_time);
 
-    // Still before deadline – must fail
     let result = client.try_release_if_expired(&event_id);
     assert_eq!(result.err(), Some(Ok(PaymentError::EscrowNotExpired)));
 }
@@ -614,14 +612,12 @@ fn test_release_if_expired_after_deadline_succeeds() {
 
     client.set_event_end_time(&admin, &event_id, &organizer, &event_end_time);
 
-    // Advance time past deadline
     env.ledger().with_mut(|li| {
         li.timestamp = event_end_time + 1;
     });
 
     client.release_if_expired(&event_id);
 
-    // Funds moved to organizer
     assert_eq!(token_client.balance(&contract_id), 0);
     assert_eq!(token_client.balance(&organizer), amount);
     assert_eq!(client.get_event_revenue(&event_id), 0);
@@ -655,12 +651,9 @@ fn test_release_if_expired_no_double_payout() {
 
     client.release_if_expired(&event_id);
 
-    // Second call must fail
     let result = client.try_release_if_expired(&event_id);
     assert_eq!(result.err(), Some(Ok(PaymentError::EscrowAlreadyReleased)));
-
-    let organizer_balance = token_client.balance(&organizer);
-    assert_eq!(organizer_balance, amount);
+    assert_eq!(token_client.balance(&organizer), amount);
 }
 
 #[test]
@@ -694,12 +687,71 @@ fn test_release_if_expired_no_held_funds_still_marks_released() {
         li.timestamp = event_end_time + 1;
     });
 
-    // No payments were made; should still succeed and mark released
     client.release_if_expired(&event_id);
 
-    // Calling again must fail
     let result = client.try_release_if_expired(&event_id);
     assert_eq!(result.err(), Some(Ok(PaymentError::EscrowAlreadyReleased)));
+}
+
+// ============================================================
+// Issue #53: Privacy-Preserving Event Emissions Tests
+// ============================================================
+
+#[test]
+fn test_payments_privacy_default_is_standard() {
+    use super::PrivacyLevel;
+
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let (_admin, _token, client, _contract_id, _token_contract) = setup_contract_with_token(&env);
+    let event_id = symbol_short!("EVENT1");
+
+    let level = client.get_event_privacy(&event_id);
+    assert_eq!(level, PrivacyLevel::Standard);
+}
+
+#[test]
+fn test_payments_set_privacy_level_private() {
+    use super::PrivacyLevel;
+
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let (admin, _token, client, _contract_id, _token_contract) = setup_contract_with_token(&env);
+    let event_id = symbol_short!("EVENT1");
+
+    client.set_event_privacy(&admin, &event_id, &PrivacyLevel::Private);
+    assert_eq!(client.get_event_privacy(&event_id), PrivacyLevel::Private);
+}
+
+#[test]
+fn test_payments_set_privacy_level_anonymous() {
+    use super::PrivacyLevel;
+
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let (admin, _token, client, _contract_id, _token_contract) = setup_contract_with_token(&env);
+    let event_id = symbol_short!("EVENT1");
+
+    client.set_event_privacy(&admin, &event_id, &PrivacyLevel::Anonymous);
+    assert_eq!(client.get_event_privacy(&event_id), PrivacyLevel::Anonymous);
+}
+
+#[test]
+fn test_payments_set_privacy_unauthorized() {
+    use super::PrivacyLevel;
+
+    let env = Env::default();
+    env.mock_all_auths();
+
+    let (_admin, _token, client, _contract_id, _token_contract) = setup_contract_with_token(&env);
+    let intruder = Address::generate(&env);
+    let event_id = symbol_short!("EVENT1");
+
+    let result = client.try_set_event_privacy(&intruder, &event_id, &PrivacyLevel::Anonymous);
+    assert_eq!(result.err(), Some(Ok(PaymentError::Unauthorized)));
 }
 
 #[test]
@@ -846,6 +898,39 @@ fn test_refund_unauthorized() {
     let payment_id = client.pay_for_ticket(&payer, &event_id, &amount, &PaymentPrivacy::Standard);
     let result = client.try_refund(&not_admin, &payment_id);
     assert_eq!(result.err(), Some(Ok(PaymentError::Unauthorized)));
+}
+
+#[test]
+fn test_mask_address_standard_returns_some() {
+    use super::events::mask_address;
+    use super::PrivacyLevel;
+
+    let env = Env::default();
+    let addr = Address::generate(&env);
+    let result = mask_address(&env, &addr, &PrivacyLevel::Standard);
+    assert_eq!(result, Some(addr));
+}
+
+#[test]
+fn test_mask_address_private_returns_none() {
+    use super::events::mask_address;
+    use super::PrivacyLevel;
+
+    let env = Env::default();
+    let addr = Address::generate(&env);
+    let result = mask_address(&env, &addr, &PrivacyLevel::Private);
+    assert!(result.is_none());
+}
+
+#[test]
+fn test_mask_address_anonymous_returns_none() {
+    use super::events::mask_address;
+    use super::PrivacyLevel;
+
+    let env = Env::default();
+    let addr = Address::generate(&env);
+    let result = mask_address(&env, &addr, &PrivacyLevel::Anonymous);
+    assert!(result.is_none());
 }
 
 #[test]

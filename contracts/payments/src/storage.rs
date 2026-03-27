@@ -33,6 +33,7 @@ pub enum DataKey {
     EventTokens(Symbol),                // List of tokens used for an event
     EventStatus(Symbol),
     OwnerTickets(Address),
+    PayerPayments(Address),
     WithdrawalHistory(Symbol),
     NextPaymentId,
     NextTicketId,
@@ -275,6 +276,29 @@ pub fn get_event_payments(env: &Env, event_id: &Symbol) -> Vec<u64> {
     env.storage()
         .persistent()
         .get(&DataKey::EventPayments(event_id.clone()))
+        .unwrap_or_else(|| Vec::new(env))
+}
+
+/// add a payment id to the list of payments for a payer
+pub fn add_payer_payment(env: &Env, payer: &Address, payment_id: u64) {
+    let key = DataKey::PayerPayments(payer.clone());
+    let mut payments: Vec<u64> = env
+        .storage()
+        .persistent()
+        .get(&key)
+        .unwrap_or_else(|| Vec::new(env));
+    payments.push_back(payment_id);
+    env.storage().persistent().set(&key, &payments);
+    env.storage()
+        .persistent()
+        .extend_ttl(&key, 60 * 60 * 24 * 30, 60 * 60 * 24 * 30 * 2);
+}
+
+/// Get all payment IDs for a payer.
+pub fn get_payer_payments(env: &Env, payer: &Address) -> Vec<u64> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::PayerPayments(payer.clone()))
         .unwrap_or_else(|| Vec::new(env))
 }
 

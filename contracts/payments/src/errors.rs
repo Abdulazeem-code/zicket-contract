@@ -14,4 +14,12 @@ pub enum PaymentError {
     NotInitialized = 7,
     PaymentAlreadyRefunded = 8,
     NoRevenue = 10,
+    AnonymousPaymentsDisabled = 11,
+    VerificationRequired = 12,
+    UnauthorizedWithdrawal = 13,
+    InvalidOrganizer = 14,
+    InvalidPayoutToken = 15,
+    EventNotActive = 16,
+    EventNotCompleted = 17,
+    RefundNotAllowed = 18,
 }

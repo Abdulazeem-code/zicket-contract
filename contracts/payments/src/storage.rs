@@ -1,20 +1,54 @@
 use crate::errors::PaymentError;
-use crate::types::{PaymentRecord, PrivacyLevel, Ticket};
+use crate::types::{EventStatus, PaymentRecord, PrivacyLevel, Ticket};
 use soroban_sdk::{contracttype, Address, Env, Symbol, Vec};
+
+#[contracttype]
+#[derive(Clone)]
+pub struct EventPrivacyConfig {
+    pub allow_anonymous: bool,
+    pub requires_verification: bool,
+}
+
+#[contracttype]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct EventConfig {
+    pub organizer: Address,
+    pub payout_token: Address,
+    pub allow_anonymous: bool,
+    pub requires_verification: bool,
+}
 
 #[contracttype]
 pub enum DataKey {
     Admin,
     AcceptedToken,
+    EventContract,
+    EventPrivacy(Symbol),
+    EventConfig(Symbol),
     Payment(u64),
     Ticket(u64),
     EventPayments(Symbol),
     EventRevenue(Symbol),
+    EventStatus(Symbol),
     OwnerTickets(Address),
     WithdrawalHistory(Symbol),
     NextPaymentId,
     NextTicketId,
-    EventPrivacy(Symbol),
+    EmissionPrivacy(Symbol),
+}
+
+pub fn set_event_status(env: &Env, event_id: &Symbol, status: &EventStatus) {
+    let key = DataKey::EventStatus(event_id.clone());
+    env.storage().persistent().set(&key, status);
+    env.storage()
+        .persistent()
+        .extend_ttl(&key, 60 * 60 * 24 * 30, 60 * 60 * 24 * 30 * 2);
+}
+
+pub fn get_event_status(env: &Env, event_id: &Symbol) -> Option<EventStatus> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::EventStatus(event_id.clone()))
 }
 
 /// Get the admin address from storage.
@@ -54,10 +88,73 @@ pub fn set_accepted_token(env: &Env, token: &soroban_sdk::Address) {
     );
 }
 
+pub fn get_event_contract(env: &Env) -> Result<soroban_sdk::Address, PaymentError> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::EventContract)
+        .ok_or(PaymentError::NotInitialized)
+}
+
+pub fn set_event_contract(env: &Env, event_contract: &soroban_sdk::Address) {
+    env.storage()
+        .persistent()
+        .set(&DataKey::EventContract, event_contract);
+    env.storage().persistent().extend_ttl(
+        &DataKey::EventContract,
+        60 * 60 * 24 * 30,
+        60 * 60 * 24 * 30 * 2,
+    );
+}
+
+pub fn get_event_privacy(env: &Env, event_id: &Symbol) -> EventPrivacyConfig {
+    env.storage()
+        .persistent()
+        .get(&DataKey::EventPrivacy(event_id.clone()))
+        .unwrap_or(EventPrivacyConfig {
+            allow_anonymous: true,
+            requires_verification: false,
+        })
+}
+
+pub fn set_event_privacy(env: &Env, event_id: &Symbol, privacy: &EventPrivacyConfig) {
+    let key = DataKey::EventPrivacy(event_id.clone());
+    env.storage().persistent().set(&key, privacy);
+    env.storage()
+        .persistent()
+        .extend_ttl(&key, 60 * 60 * 24 * 30, 60 * 60 * 24 * 30 * 2);
+}
+
+pub fn get_event_config(env: &Env, event_id: &Symbol) -> Option<EventConfig> {
+    env.storage()
+        .persistent()
+        .get(&DataKey::EventConfig(event_id.clone()))
+}
+
+pub fn set_event_config(env: &Env, event_id: &Symbol, config: &EventConfig) {
+    let key = DataKey::EventConfig(event_id.clone());
+    env.storage().persistent().set(&key, config);
+    env.storage()
+        .persistent()
+        .extend_ttl(&key, 60 * 60 * 24 * 30, 60 * 60 * 24 * 30 * 2);
+}
+
+pub fn get_event_organizer(env: &Env, event_id: &Symbol) -> Result<Address, PaymentError> {
+    get_event_config(env, event_id)
+        .map(|config| config.organizer)
+        .ok_or(PaymentError::InvalidOrganizer)
+}
+
+pub fn get_event_payout_token(env: &Env, event_id: &Symbol) -> Result<Address, PaymentError> {
+    get_event_config(env, event_id)
+        .map(|config| config.payout_token)
+        .ok_or(PaymentError::InvalidPayoutToken)
+}
+
 /// Check if contract is initialized.
 pub fn is_initialized(env: &Env) -> bool {
     env.storage().persistent().has(&DataKey::Admin)
         && env.storage().persistent().has(&DataKey::AcceptedToken)
+        && env.storage().persistent().has(&DataKey::EventContract)
 }
 
 /// Get the next payment ID and increment it.
@@ -249,17 +346,17 @@ pub fn reset_event_revenue(env: &Env, event_id: &Symbol) {
     env.storage().persistent().set(&key, &0i128);
 }
 
-pub fn set_event_privacy(env: &Env, event_id: &Symbol, level: &PrivacyLevel) {
-    let key = DataKey::EventPrivacy(event_id.clone());
+pub fn set_emission_privacy(env: &Env, event_id: &Symbol, level: &PrivacyLevel) {
+    let key = DataKey::EmissionPrivacy(event_id.clone());
     env.storage().persistent().set(&key, level);
     env.storage()
         .persistent()
         .extend_ttl(&key, 60 * 60 * 24 * 30, 60 * 60 * 24 * 30 * 2);
 }
 
-pub fn get_event_privacy(env: &Env, event_id: &Symbol) -> PrivacyLevel {
+pub fn get_emission_privacy(env: &Env, event_id: &Symbol) -> PrivacyLevel {
     env.storage()
         .persistent()
-        .get(&DataKey::EventPrivacy(event_id.clone()))
+        .get(&DataKey::EmissionPrivacy(event_id.clone()))
         .unwrap_or(PrivacyLevel::Standard)
 }

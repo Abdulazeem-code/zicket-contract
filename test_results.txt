@@ -1,0 +1,163 @@
+    Finished `test` profile [unoptimized + debuginfo] target(s) in 0.17s
+     Running unittests src/lib.rs (target/debug/deps/event_contract-6b71e5a30de4e23a)
+
+running 46 tests
+test test::test_create_event ... ok
+test test::test_cancel_event ... ok
+test test::test_cancel_completed_event_fails ... ok
+test test::test_create_event_date_less_than_24h_fails ... ok
+test test::test_create_event_empty_name_fails ... ok
+test test::test_create_event_empty_venue_fails ... ok
+test test::test_create_event_invalid_tickets_fails ... ok
+test test::test_create_event_negative_price_fails ... ok
+test test::test_create_event_past_date_fails ... ok
+test test::test_create_event_too_many_tickets_fails ... ok
+test test::test_create_event_duplicate_fails ... ok
+test test::test_get_event_not_found ... ok
+test test::test_mask_address_anonymous_returns_hashed ... ok
+test test::test_mask_address_private_returns_partial ... ok
+test test::test_mask_address_standard_returns_full ... ok
+test integration_tests::test_registration_reverts_if_minting_fails ... ok
+test test::test_invalid_status_transition_fails ... ok
+test integration_tests::test_registration_cross_contract_happy_path ... ok
+test integration_tests::test_registration_with_email_hook ... ok
+test integration_tests::test_withdraw_revenue_integration ... ok
+test test::test_pay_with_expired_reservation_fails ... ok
+test test::test_privacy_default_is_standard ... ok
+test test::test_register_for_event_cancelled_fails ... ok
+test test::test_register_for_event_not_active_fails ... ok
+test test::test_get_attendees ... ok
+test integration_tests::test_cancel_event_triggers_refunds ... ok
+test test::test_reserve_expire_and_available_again ... ok
+test test::test_set_privacy_level_standard ... ok
+test test::test_register_for_event_duplicate_fails ... ok
+test test::test_set_privacy_level_anonymous ... ok
+test test::test_set_privacy_level_private ... ok
+test test::test_set_privacy_unauthorized ... ok
+test test::test_register_for_event_happy_path ... ok
+test test::test_update_cancelled_event_fails ... ok
+test test::test_unauthorized_cancel ... ok
+test test::test_update_event_details ... ok
+test test::test_reserve_ticket_success ... ok
+test test::test_update_event_not_found ... ok
+test test::test_update_active_event_fails ... ok
+test test::test_register_for_event_sold_out_fails ... ok
+test test::test_update_event_details_noop ... ok
+test test::test_reserve_and_pay_success ... ok
+test test::test_update_event_status_upcoming_to_active ... ok
+test test::test_update_event_status_active_to_completed ... ok
+test test::test_update_event_unauthorized ... ok
+test test::test_update_invalid_data ... ok
+
+test result: ok. 46 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+
+     Running unittests src/lib.rs (target/debug/deps/factory_contract-e3bb2b92a3052a95)
+
+running 6 tests
+test test::test_initialize_stores_all_parameters ... ok
+test test::test_query_nonexistent_event_fails ... ok
+test test::test_deploy_event_returns_address_and_stores_record ... ok
+test test::test_deploy_duplicate_event_fails ... ok
+test test::test_query_all_events ... ok
+test test::test_query_organizer_events_across_organizers ... ok
+
+test result: ok. 6 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.06s
+
+     Running unittests src/lib.rs (target/debug/deps/mock_event_contract-363c00e7a08cabe2)
+
+running 0 tests
+
+test result: ok. 0 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/payments_contract-bf9d7cb78b252864)
+
+running 51 tests
+test test::test_mask_address_anonymous_returns_hashed ... ok
+test test::test_mask_address_private_returns_partial ... ok
+test test::test_mask_address_standard_returns_full ... ok
+test test::test_get_nonexistent_payment ... ok
+test test::test_initialize ... ok
+test test::test_double_initialization ... ok
+test test::test_get_event_revenue_initial ... ok
+test test::test_anonymous_event_does_not_expose_payer ... ok
+test test::test_pay_after_event_completed_fails ... ok
+test multi_token_test::test_multi_token_payments ... ok
+test test::test_multiple_payments_create_distinct_tickets_for_owner ... ok
+test test::test_pay_for_ticket ... ok
+test test::test_double_withdraw_rejected_after_revenue_cleared ... ok
+test test::test_multiple_withdrawals_tracked ... ok
+test test::test_pay_for_ticket_invalid_amount_negative ... ok
+test test::test_pay_for_ticket_invalid_amount_zero ... ok
+test test::test_pay_for_ticket_anonymous_privacy ... ok
+test test::test_pay_for_ticket_query_record ... ok
+test test::test_pay_for_ticket_unauthorized - should panic ... ok
+test test::test_pay_for_ticket_private_privacy ... ok
+test test::test_pay_for_ticket_rejects_anonymous_when_disabled ... ok
+test test::test_pay_for_ticket_rejects_unverified_when_required ... ok
+test test::test_mixed_refund_then_withdraw ... ok
+test test::test_pay_for_ticket_standard_privacy ... ok
+test test::test_payments_privacy_default_is_standard ... ok
+test test::test_payments_set_privacy_level_anonymous ... ok
+test test::test_payments_set_privacy_level_private ... ok
+test test::test_pay_for_ticket_with_email_hash ... ok
+test test::test_pay_for_ticket_with_options_allows_verified_flow ... ok
+test test::test_pay_for_ticket_multiple_payments ... ok
+test test::test_refund_nonexistent_payment ... ok
+test test::test_payment_issues_ticket_and_links_payment ... ok
+test test::test_payments_set_privacy_unauthorized ... ok
+test test::test_refund_unauthorized ... ok
+test test::test_refund_on_cancelled_event_succeeds ... ok
+test test::test_refund_after_withdrawal ... ok
+test test::test_release_if_expired_not_configured ... ok
+test test::test_release_if_expired_no_held_funds_still_marks_released ... ok
+test test::test_refund_reduces_revenue_correctly ... ok
+test test::test_privacy_levels_stored_correctly ... ok
+test test::test_sync_event_config_invalid_payout_token_rejected ... ok
+test test::test_release_if_expired_before_deadline_fails ... ok
+test test::test_release_if_expired_no_double_payout ... ok
+test test::test_set_event_end_time_success ... ok
+test test::test_release_if_expired_after_deadline_succeeds ... ok
+test test::test_query_payments ... ok
+test test::test_withdraw_no_revenue ... ok
+test test::test_withdraw_before_completion_fails ... ok
+test test::test_withdraw_unauthorized_organizer_rejected ... ok
+test test::test_withdraw_revenue_success ... ok
+test test::test_withdraw_happy_path ... ok
+
+test result: ok. 51 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.58s
+
+     Running unittests src/lib.rs (target/debug/deps/privacy_utils-7bdaf50ef6867d7b)
+
+running 11 tests
+test test::test_anonymous_returns_hash ... ok
+test test::test_anonymous_hash_differs_from_raw_xdr ... ok
+test test::test_anonymous_different_addresses_produce_different_hashes ... ok
+test test::test_anonymous_same_address_deterministic ... ok
+test test::test_no_raw_address_in_private_mode ... ok
+test test::test_private_returns_partial_bytes ... ok
+test test::test_no_raw_address_in_anonymous_mode ... ok
+test test::test_private_same_address_deterministic ... ok
+test test::test_standard_returns_full_address ... ok
+test test::test_private_does_not_expose_full_address ... ok
+test test::test_standard_two_different_addresses_remain_distinct ... ok
+
+test result: ok. 11 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.00s
+
+     Running unittests src/lib.rs (target/debug/deps/ticket_contract-ed1b9bd85a9665a2)
+
+running 12 tests
+test test::test_transfer_disabled_ticket - should panic ... ok
+test test::test_transfer_cancelled_ticket - should panic ... ok
+test test::test_transfer_enabled_ticket ... ok
+test test::test_use_ticket_cancelled - should panic ... ok
+test test::test_happy_path_transfer ... ok
+test test::test_chain_transfer ... ok
+test test::test_use_ticket_double_checkin - should panic ... ok
+test test::test_unauthorized_transfer - should panic ... ok
+test test::test_transfer_to_self - should panic ... ok
+test test::test_use_ticket_unauthorized - should panic ... ok
+test test::test_transfer_used_ticket - should panic ... ok
+test test::test_use_ticket_happy_path ... ok
+
+test result: ok. 12 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 0.04s
+

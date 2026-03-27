@@ -1,6 +1,6 @@
 #![no_std]
 use payments_contract::{PaymentPrivacy, PaymentsContractClient};
-use soroban_sdk::{contract, contractimpl, Address, Env, Symbol};
+use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, Symbol};
 use ticket_contract::TicketContractClient;
 
 mod errors;
@@ -415,6 +415,7 @@ impl EventContract {
         attendee: Address,
         event_id: Symbol,
         tier_id: u32,
+        _email_hash: Option<BytesN<32>>,
     ) -> Result<(), EventError> {
         attendee.require_auth();
 
@@ -529,6 +530,7 @@ impl EventContract {
         event_id: Symbol,
         tier_id: u32,
         _is_verified: bool,
+        _email_hash: Option<BytesN<32>>,
     ) -> Result<(), EventError> {
         attendee.require_auth();
 
@@ -585,10 +587,12 @@ impl EventContract {
         if tier.price > 0 {
             let payments_client = PaymentsContractClient::new(&env, &payments_contract);
             let token = payments_client.get_accepted_token();
+
             payments_client.pay_for_ticket(
                 &attendee,
                 &event_id,
                 &tier.price,
+                &_email_hash,
                 &token,
                 &PaymentPrivacy::Standard,
             );

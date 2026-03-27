@@ -1,6 +1,5 @@
-use soroban_sdk::{contractevent, Address, BytesN, Env, Symbol};
 use privacy_utils::{mask_address, MaskedAddress, PrivacyLevel};
-use soroban_sdk::{contractevent, Address, Env, Symbol};
+use soroban_sdk::{contractevent, Address, BytesN, Env, Symbol};
 
 #[contractevent(data_format = "vec", topics = ["payment"])]
 pub struct PaymentReceived {
